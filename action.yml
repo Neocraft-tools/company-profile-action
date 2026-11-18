@@ -1,5 +1,5 @@
 name: "Official Company Profile Lookup"
-description: "Turn company names, domains or IDs into official registry profiles (France SIREN, UK Companies House, US SEC, LEI) inside your workflows."
+description: "Turn company names, domains or IDs into official registry profiles (France, UK, US SEC, LEI) in your workflows."
 author: "Neocraft"
 branding:
   icon: "briefcase"
