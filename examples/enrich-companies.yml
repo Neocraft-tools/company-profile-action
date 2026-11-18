@@ -1,0 +1,37 @@
+# Enrich the companies listed in companies.txt (one per line) and commit the JSON.
+name: Enrich companies
+on:
+  workflow_dispatch:
+  push:
+    paths: [companies.txt]
+
+permissions:
+  contents: write
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - id: list
+        run: |
+          {
+            echo "queries<<EOF"
+            cat companies.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - id: profiles
+        uses: Neocraft-tools/company-profile-action@v1
+        with:
+          apify-token: ${{ secrets.APIFY_TOKEN }}
+          queries: ${{ steps.list.outputs.queries }}
+          default-country: FR
+          output-file: data/company-profiles.json
+          max-total-charge-usd: "0.50"
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/company-profiles.json
+          git commit -m "Update company profiles" || echo "No change"
+          git push

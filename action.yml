@@ -1,0 +1,81 @@
+name: "Official Company Profile Lookup"
+description: "Turn company names, domains or IDs into official registry profiles (France SIREN, UK Companies House, US SEC, LEI) inside your workflows."
+author: "Neocraft"
+branding:
+  icon: "briefcase"
+  color: "purple"
+
+inputs:
+  apify-token:
+    description: "Your Apify API token (store it as a secret). Runs are billed to this Apify account."
+    required: true
+  queries:
+    description: "Companies to look up, separated by commas or new lines: domain (doctolib.fr), name, SIREN, UK company number, LEI or ticker:AAPL."
+    required: true
+  default-country:
+    description: "Country used to interpret ambiguous queries: ANY, FR, GB or US."
+    required: false
+    default: "ANY"
+  website-lookup:
+    description: "Resolve domains by reading the company website (legal notice) when needed."
+    required: false
+    default: "true"
+  hiring-signals:
+    description: "Add hiring signals (open jobs) to each profile (paid add-on)."
+    required: false
+    default: "false"
+  fail-on-not-found:
+    description: "Fail the step when a query does not resolve to exactly one company."
+    required: false
+    default: "false"
+  extra-input:
+    description: "Optional JSON object merged into the Actor input (any field of neocraft/official-company-profile)."
+    required: false
+    default: ""
+  max-total-charge-usd:
+    description: "Hard spend cap for the run in USD."
+    required: false
+    default: "0.10"
+  timeout-secs:
+    description: "Maximum run time of the Actor in seconds."
+    required: false
+    default: "600"
+  output-file:
+    description: "Where to save the full JSON results."
+    required: false
+    default: "company-profiles.json"
+
+outputs:
+  found-count:
+    description: "Number of queries resolved to a company."
+    value: ${{ steps.run.outputs.found-count }}
+  not-found-count:
+    description: "Number of queries not found, ambiguous or invalid (free)."
+    value: ${{ steps.run.outputs.not-found-count }}
+  profiles:
+    description: "Compact JSON array (query, status, companyName, country, ids, legal status, incorporation date, address)."
+    value: ${{ steps.run.outputs.profiles }}
+  results-file:
+    description: "Path of the full JSON results."
+    value: ${{ steps.run.outputs.results-file }}
+  run-url:
+    description: "Apify Console URL of the run."
+    value: ${{ steps.run.outputs.run-url }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: run
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/entrypoint.sh"
+      env:
+        APIFY_TOKEN: ${{ inputs.apify-token }}
+        INPUT_QUERIES: ${{ inputs.queries }}
+        INPUT_DEFAULT_COUNTRY: ${{ inputs.default-country }}
+        INPUT_WEBSITE_LOOKUP: ${{ inputs.website-lookup }}
+        INPUT_HIRING_SIGNALS: ${{ inputs.hiring-signals }}
+        INPUT_FAIL_ON_NOT_FOUND: ${{ inputs.fail-on-not-found }}
+        INPUT_EXTRA_INPUT: ${{ inputs.extra-input }}
+        INPUT_MAX_TOTAL_CHARGE_USD: ${{ inputs.max-total-charge-usd }}
+        INPUT_TIMEOUT_SECS: ${{ inputs.timeout-secs }}
+        INPUT_OUTPUT_FILE: ${{ inputs.output-file }}
